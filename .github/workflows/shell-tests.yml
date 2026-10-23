@@ -27,10 +27,12 @@ jobs:
           sudo install -m 0755 "$RUNNER_TEMP/yq" /usr/local/bin/yq
       - name: Check Bash syntax
         run: git ls-files -z -- '*.sh' | xargs -0 -r -n 1 bash -n
-      - name: Adapt upstream fixtures to the panel documentation and default home
+      - name: Restore preserved entrypoints for the unchanged upstream baseline tests
         run: |
           cp UPSTREAM_README.md README.md
-          sed -i 's#default_home="$WORK_DIR/user/\.clashctl"#default_home="$WORK_DIR/user/clashctl"#' tests/uninstall-scope.sh
+          cp .github/upstream/install.sh.original install.sh
+          cp .github/upstream/uninstall.sh.original uninstall.sh
+          cp .github/upstream/gitignore.original .gitignore
       - name: Run regression suite
         run: sudo bash tests/run-all.sh
       - name: Run installation and service tests as a regular user
