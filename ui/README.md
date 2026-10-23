@@ -4,28 +4,21 @@
 
 ![界面预览](media/preview.png)
 
-## 直接下载并安装
+## 安装界面
 
-下载 [clashctl-panel-0.3.3.vsix](https://github.com/zkyqust/clash-for-linux-panel/releases/download/v0.3.3/clashctl-panel-0.3.3.vsix)，无需解压或自行构建。也可以从 [GitHub Releases](https://github.com/zkyqust/clash-for-linux-panel/releases/latest) 选择最新 VSIX。
+**服务器已安装 clashctl**：下载 [clashctl-panel-0.3.4.vsix](https://github.com/zkyqust/clash-for-linux-panel/releases/download/v0.3.4/clashctl-panel-0.3.4.vsix)，按下面的步骤安装插件即可。
 
-1. 用 VS Code 的 Remote - SSH 连接 Linux 服务器。
-2. 在扩展页右上角选择 **… → 从 VSIX 安装**，选择该文件，并确认安装到 **SSH 主机**。文件选择器只显示服务器文件时，可先上传 VSIX 再安装。
-3. 按 `Ctrl+Shift+P`，执行 **Developer: Reload Window（重新加载窗口）**，然后打开左侧 Clash Panel。
-4. 在“连接设置”中选择“当前 Linux / Remote SSH 窗口”，填写实际安装目录，默认 `~/clashctl`。已有安装继续使用原目录，无需改名或迁移。
+**服务器尚未安装 clashctl**：按[仓库安装说明](https://github.com/zkyqust/clash-for-linux-panel#安装方式)运行 `setup.sh`。它会安装 clashctl / Mihomo，并尝试自动安装插件，正常安装不编译界面。
 
-VSIX 提供管理界面，Linux 上仍需安装 clashctl / Mihomo。完整安装说明见根目录 README。扩展运行时没有 npm 依赖，需要 VS Code 1.96+；Linux 桥接需要 Bash 和 Python 3.9+。
+`setup.sh` 已自动装好插件时，重新加载窗口即可。如果服务器没有 `code` 命令或插件自动安装失败，再手动安装 VSIX：
 
-## 从源码构建（开发者可选）
+1. 在 VS Code 的 Remote SSH 窗口打开 **扩展 → … → 从 VSIX 安装**，选择下载的 VSIX，或脚本打印路径中的文件，安装到 **SSH 主机**。文件选择器只显示服务器文件时，可先上传 VSIX。
+2. 按 `Ctrl+Shift+P`，执行 **Developer: Reload Window（重新加载窗口）**，然后打开左侧 Clash Panel。
+3. 在“连接设置”中选择“当前 Linux / Remote SSH 窗口”，填写 clashctl 的实际运行目录，默认 `~/clashctl`。
 
-普通用户直接安装上面的 VSIX 即可。开发者修改代码后，在仓库根目录构建：
+VSIX 提供管理界面，clashctl / Mihomo 运行在 Linux 上。`setup.sh --home` 选择的是 clashctl 运行目录，面板应填写同一个路径；VSIX 由 VS Code 管理安装位置。
 
-```bash
-python3 ui/tools/package.py
-```
-
-在 ui 目录内执行 `python3 tools/package.py`。Windows 可用 `py` 代替 `python3`。生成文件为 `ui/build/clashctl-panel-0.3.3.vsix`。
-
-VS Code 扩展页右上角 `…` → **从 VSIX 安装**。使用 Remote SSH 时安装到 SSH 主机，升级后执行 **Developer: Reload Window**。
+需要 VS Code 1.96+，目标 Linux 需要 Bash 和 Python 3.9+。首次安装、复用已有目录、GitHub 下载加速及开发构建命令统一见[仓库 README](https://github.com/zkyqust/clash-for-linux-panel#readme)。
 
 ## 首次使用
 
@@ -35,10 +28,6 @@ VS Code 扩展页右上角 `…` → **从 VSIX 安装**。使用 Remote SSH 时
 4. 在“代理节点”为规则使用的策略组或全局模式的 GLOBAL 组选择节点，选择会保存；直连模式无需选择代理节点。
 
 Windows 本地窗口也可以选择“通过 SSH”，填写主机别名或 user@host 和端口。需要提前配置密钥或 SSH Agent，并确认过主机指纹；插件不保存 SSH 密码。
-
-## 服务器无法直接访问 GitHub
-
-已有 clashctl 时，可以在电脑上下载本页面的 VSIX，上传服务器后从 VS Code 的 Remote SSH 窗口安装。需要安装内核时，根目录 README 的“服务器无法直接访问 GitHub：使用下载加速”一节提供完整命令：通过 `gh-proxy.com` 下载源码和 VSIX，再设置 `GH_PROXY` 并使用 `bash setup.sh --vsix ...` 安装。当前 VSIX 下载器不会自动读取 `GH_PROXY`，需要按说明提前下载文件。
 
 ## 三个独立控制
 
