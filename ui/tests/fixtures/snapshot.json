@@ -1,0 +1,9 @@
+{
+  "home": "~/clashctl", "host": "linux-server", "running": true, "version": "v1.19.33", "mode": "rule",
+  "ports": {"http": 7897, "mixed": 7890, "socks": 7891}, "tun": false, "tunAvailable": false,
+  "tunCapability": {"canEnable": false, "reason": "容器未提供 /dev/net/tun，需要管理员挂载 TUN 设备并授予网络管理权限。"},
+  "nodePersistence": true, "terminalProxy": {"enabled": false, "installed": false}, "warnings": [],
+  "profiles": [{"name": "示例订阅", "source": "本地 YAML", "updated": "", "active": true}],
+  "groups": [{"name": "国外流量", "type": "Selector", "now": "台湾示例", "all": ["台湾示例", "日本示例", "DIRECT"], "selectable": true}],
+  "nodes": {"台湾示例": {"type": "Trojan", "delay": 80}, "日本示例": {"type": "Trojan", "delay": 120}, "DIRECT": {"type": "Direct", "delay": null}}
+}

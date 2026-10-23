@@ -1,0 +1,50 @@
+{
+  "name": "clashctl-panel",
+  "displayName": "Clash Panel · 可视化管理",
+  "description": "在 VS Code 中管理 Linux clashctl：节点、订阅、连接、日志与代理终端。支持 Remote SSH 和本机 SSH。",
+  "version": "0.3.3",
+  "publisher": "local-tools",
+  "license": "MIT",
+  "repository": { "type": "git", "url": "https://github.com/zkyqust/clash-for-linux-panel.git", "directory": "ui" },
+  "homepage": "https://github.com/zkyqust/clash-for-linux-panel#readme",
+  "bugs": { "url": "https://github.com/zkyqust/clash-for-linux-panel/issues" },
+  "engines": { "vscode": "^1.96.0" },
+  "categories": ["Other"],
+  "keywords": ["clashctl", "mihomo", "clash", "ssh", "proxy"],
+  "main": "./src/extension.js",
+  "extensionKind": ["workspace"],
+  "activationEvents": ["onView:clashPanel.sidebar"],
+  "capabilities": { "untrustedWorkspaces": { "supported": false }, "virtualWorkspaces": { "supported": false } },
+  "contributes": {
+    "commands": [
+      { "command": "clashPanel.open", "title": "Clash Panel: 打开可视化面板", "icon": "$(dashboard)" },
+      { "command": "clashPanel.configure", "title": "Clash Panel: 配置连接", "icon": "$(gear)" },
+      { "command": "clashPanel.refresh", "title": "Clash Panel: 刷新", "icon": "$(refresh)" },
+      { "command": "clashPanel.terminal", "title": "Clash Panel: 新建服务器终端", "icon": "$(terminal)" }
+    ],
+    "viewsContainers": { "activitybar": [{ "id": "clashPanel", "title": "Clash Panel", "icon": "media/clash.svg" }] },
+    "views": { "clashPanel": [{ "type": "webview", "id": "clashPanel.sidebar", "name": "Clash 控制台", "icon": "media/clash.svg" }] },
+    "menus": { "view/title": [
+      { "command": "clashPanel.open", "when": "view == clashPanel.sidebar", "group": "navigation@1" },
+      { "command": "clashPanel.refresh", "when": "view == clashPanel.sidebar", "group": "navigation@2" },
+      { "command": "clashPanel.configure", "when": "view == clashPanel.sidebar", "group": "navigation@3" }
+    ] },
+    "configuration": {
+      "title": "Clash Panel",
+      "properties": {
+        "clashPanel.transport": { "type": "string", "enum": ["auto", "local", "ssh"], "default": "auto", "scope": "machine", "description": "auto：Linux/Remote SSH 窗口直接管理当地 clashctl；Windows 窗口通过 SSH 管理。" },
+        "clashPanel.home": { "type": "string", "default": "~/clashctl", "scope": "machine", "description": "Linux 中 clashctl 的安装目录，例如 /home/用户名/clashctl。" },
+        "clashPanel.sshHost": { "type": "string", "default": "", "scope": "machine", "description": "SSH 配置别名，或 user@hostname。只在 ssh 连接方式下使用。" },
+        "clashPanel.sshPort": { "type": "number", "default": 22, "minimum": 1, "maximum": 65535, "scope": "machine", "description": "SSH 端口。使用 SSH 配置别名时以该别名的 Port 为准，设置为 22 不传 -p。" },
+        "clashPanel.python": { "type": "string", "default": "python3", "scope": "machine", "description": "目标 Linux 上的 Python 3 命令或绝对路径。" },
+        "clashPanel.refreshSeconds": { "type": "number", "default": 10, "minimum": 5, "maximum": 120, "description": "可见面板的刷新间隔（秒）。" }
+      }
+    }
+  },
+  "scripts": {
+    "check": "node --check src/extension.js && node --check src/backend.js && node --check media/app.js",
+    "test": "node --test tests/backend.test.js tests/controller.test.js",
+    "package": "vsce package --allow-missing-repository --no-rewrite-relative-links --out releases/clashctl-panel-0.3.3.vsix"
+  },
+  "devDependencies": { "@vscode/vsce": "^3.6.2" }
+}

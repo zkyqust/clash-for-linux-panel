@@ -1,0 +1,7 @@
+{
+  "project": "nelvko/clashctl",
+  "url": "https://github.com/nelvko/clashctl",
+  "commit": "cb609e8bdfc24559bbabbf3ce3c199be9e3e4ad2",
+  "license": "MIT",
+  "changes": "Runtime files and binary geodata excluded. Installer and uninstaller default directory changed to ~/clashctl; explicit paths and CLASHCTL_HOME remain supported. Local-source copying explicitly preserves the required .env.example template after VCS ignore filtering."
+}

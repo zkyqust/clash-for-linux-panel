@@ -1,0 +1,126 @@
+'use strict';
+// Isolated browser for our own webview assets; does not attach to a user browser.
+const fs = require('node:fs'), path = require('node:path'), http = require('node:http'), assert = require('node:assert/strict');
+const { chromium } = require(process.env.PLAYWRIGHT_MODULE || 'playwright');
+const root = path.resolve(__dirname, '..');
+fs.mkdirSync(path.join(root, 'artifacts'), { recursive: true });
+const snapshotFile = 'tests/fixtures/snapshot.json';
+const fixture = JSON.parse(fs.readFileSync(path.join(root, snapshotFile), 'utf8'));
+fixture.host = 'linux-server'; fixture.home = '~/clashctl';
+const server = http.createServer((req, res) => {
+  const url = new URL(req.url, 'http://127.0.0.1');
+  if (url.pathname === '/showcase') {
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    res.end('<!DOCTYPE html><html><body style="margin:0;display:grid;grid-template-columns:260px 1fr;height:100vh;background:#10161d"><iframe title="侧栏" src="/?surface=sidebar" style="width:100%;height:100%;border:0;border-right:1px solid #293541;box-sizing:border-box"></iframe><iframe title="控制台" src="/" style="width:100%;height:100%;border:0"></iframe></body></html>');
+  } else if (url.pathname === '/') {
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    res.end(`<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="stylesheet" href="/style.css"><link rel="stylesheet" href="/controls.css"></head><body data-surface="${url.searchParams.get('surface') === 'sidebar' ? 'sidebar' : 'dashboard'}"><div id="app"></div><script>window.sent=[];window.acquireVsCodeApi=()=>({getState:()=>({}),setState:()=>{},postMessage:m=>window.sent.push(m)});</script><script src="/app.js"></script></body></html>`);
+  } else if (['/style.css', '/controls.css', '/app.js'].includes(url.pathname)) {
+    res.setHeader('Content-Type', url.pathname.endsWith('.css') ? 'text/css' : 'text/javascript');
+    res.end(fs.readFileSync(path.join(root, 'media', url.pathname.slice(1))));
+  } else { res.writeHead(404); res.end(); }
+});
+async function update(page, snapshot = fixture, extra = {}) {
+  await page.evaluate(data => window.postMessage({ type: 'state', data }, '*'), { snapshot, busy: false, error: '', updated: Date.now(), ...extra });
+}
+(async () => {
+  await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
+  const browser = await chromium.launch({ channel: 'msedge', headless: true });
+  const page = await browser.newPage({ viewport: { width: 1260, height: 960 } });
+  const errors = []; page.on('pageerror', e => errors.push(e.message));
+  const base = `http://127.0.0.1:${server.address().port}`, checks = [];
+  try {
+    await page.goto(base); await update(page, fixture, { activeTab: 'overview' });
+    await page.getByRole('heading', { name: '概览', exact: true }).waitFor();
+    assert.equal(await page.locator('.status-card').count(), 5);
+    assert.equal(await page.getByRole('switch', { name: 'TUN 虚拟网卡' }).isDisabled(), !fixture.tun && !fixture.tunCapability?.canEnable);
+    assert.equal(await page.getByRole('switch').count(), 3);
+    await page.getByRole('switch', { name: '终端默认代理', exact: true }).click();
+    assert.deepEqual(await page.evaluate(() => window.sent.at(-1)), { action: 'terminalProxy', enabled: true });
+    assert.equal(await page.getByRole('button', { name: '编辑HTTP端口' }).count(), 0);
+    checks.push('three independent overview controls without duplicate port settings');
+    await page.getByRole('button', { name: '设置', exact: true }).click();
+    assert.equal(await page.getByRole('switch').count(), 0);
+    await page.getByRole('button', { name: '编辑HTTP端口' }).click();
+    await page.getByRole('spinbutton', { name: 'HTTP端口', exact: true }).fill(String(fixture.ports.mixed));
+    await page.getByRole('button', { name: '保存并应用' }).click();
+    await page.getByRole('alert').getByText('独立监听端口不能重复。').waitFor();
+    await page.getByRole('spinbutton', { name: 'HTTP端口', exact: true }).fill('17997');
+    await page.getByRole('button', { name: '保存并应用' }).click();
+    assert.equal(await page.evaluate(() => window.sent.at(-1).ports.http), 17997);
+    await page.evaluate(() => window.postMessage({ type: 'portsSaved', data: {} }, '*'));
+    checks.push('port editing, duplicate validation and save message');
+    await update(page, fixture, { activeTab: 'overview' });
+    await page.getByRole('button', { name: '全局', exact: true }).click();
+    assert.equal(await page.evaluate(() => window.sent.at(-1).mode), 'global');
+    assert.ok(!(await page.locator('body').textContent()).includes('仅作用于当前内核'));
+    const supported = { ...fixture, tun: false, tunAvailable: true, tunCapability: { canEnable: true, reason: '' } };
+    await update(page, supported, { activeTab: 'overview' });
+    await page.getByRole('switch', { name: 'TUN 虚拟网卡' }).click();
+    assert.deepEqual(await page.evaluate(() => window.sent.at(-1)), { action: 'tun', enabled: true });
+    await update(page, { ...supported, tun: true }, { activeTab: 'overview' });
+    await page.getByRole('switch', { name: 'TUN 虚拟网卡' }).click();
+    assert.equal(await page.evaluate(() => window.sent.at(-1).enabled), false);
+    checks.push('persistent mode copy and independent TUN switch');
+    await update(page, fixture, { activeTab: 'nodes' });
+    const group = fixture.groups.filter(g => g.selectable && g.name !== 'GLOBAL').sort((a, b) => b.all.length - a.all.length)[0];
+    await page.locator('select').selectOption(group.name);
+    await page.getByRole('textbox', { name: '搜索节点' }).fill('台湾');
+    assert.ok(await page.locator('.node').count() > 0);
+    assert.ok((await page.locator('.node-name').allTextContents()).every(n => n.includes('台湾')));
+    await page.locator('.node-select').first().click();
+    assert.equal(await page.evaluate(() => window.sent.at(-1).action), 'select');
+    checks.push('node search and selection');
+    const node = await page.locator('.node-name').first().textContent();
+    await page.getByRole('button', { name: `测量 ${node} 的延迟`, exact: true }).click();
+    assert.deepEqual(await page.evaluate(() => window.sent.at(-1)), { action: 'delay', group: group.name, node });
+    await update(page, fixture, { activeTab: 'nodes', testingNodes: [node] });
+    assert.equal(await page.getByRole('button', { name: `测量 ${node} 的延迟`, exact: true }).isDisabled(), true);
+    assert.equal(await page.locator('.node-select').first().isDisabled(), false);
+    await page.evaluate(name => window.postMessage({ type: 'delay', data: { delays: { [name]: 0 }, errors: { [name]: '测试连接失败' } } }, '*'), node);
+    await update(page, fixture, { activeTab: 'nodes', testingNodes: [] });
+    await page.getByRole('button', { name: `测量 ${node} 的延迟`, exact: true }).getByText('重试').waitFor();
+    await page.evaluate(name => window.postMessage({ type: 'delay', data: { delays: { [name]: 92 }, errors: {} } }, '*'), node);
+    await page.getByText('92 ms', { exact: true }).waitFor();
+    await page.getByRole('textbox', { name: '搜索节点' }).fill('');
+    await page.screenshot({ path: path.join(root, 'artifacts/nodes.png') });
+    checks.push('single-node delay never selects, pending state, failure retry and result');
+    await page.getByRole('button', { name: '订阅管理', exact: true }).click();
+    assert.equal(await page.locator('.profile').count(), fixture.profiles.length);
+    assert.equal(await page.locator('.active-profile button.danger').count(), 1);
+    await page.locator('.active-profile button.danger').click();
+    assert.equal(await page.evaluate(() => window.sent.at(-1).action), 'subDelete');
+    checks.push('active subscription deletion entry');
+    await page.getByRole('button', { name: '活动连接', exact: true }).click();
+    assert.equal(await page.evaluate(() => window.sent.at(-1).action), 'connections');
+    await page.evaluate(() => window.postMessage({ type: 'connections', data: { connections: [{ host: 'example.com', port: '443', network: 'tcp', chains: ['日本', '国外流量'], rule: 'Match', upload: 1024, download: 2048 }], count: 1 } }, '*'));
+    await page.getByText('example.com:443').waitFor();
+    await page.getByRole('button', { name: '运行日志', exact: true }).click();
+    await page.evaluate(() => window.postMessage({ type: 'logs', data: { text: '<img src=x onerror="window.bad=1">' } }, '*'));
+    assert.equal(await page.locator('.logs img').count(), 0);
+    assert.equal(await page.evaluate(() => window.bad), undefined);
+    checks.push('connections and log HTML escaping');
+    await update(page, fixture, { activeTab: 'overview', busy: true });
+    assert.equal(await page.locator('button:not(:disabled)').count(), 0);
+    await update(page, fixture, { activeTab: 'overview' }); await page.setViewportSize({ width: 360, height: 1000 });
+    assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
+    await update(page, null, { error: 'SSH 连接失败' }); await page.getByText('先连接你的 Clash').waitFor();
+    checks.push('busy state, narrow layout and SSH failure');
+    await page.goto(base + '/?surface=sidebar'); await update(page, fixture, { activeTab: 'overview' });
+    assert.equal(await page.locator('.nav-item').count(), 6);
+    assert.equal(await page.locator('.status-card').count(), 0);
+    assert.equal(await page.locator('.node').count(), 0);
+    await page.getByRole('button', { name: '订阅管理', exact: true }).click();
+    assert.deepEqual(await page.evaluate(() => window.sent.at(-1)), { action: 'navigate', tab: 'profiles' });
+    await page.screenshot({ path: path.join(root, 'artifacts/sidebar.png') });
+    checks.push('sidebar navigation without duplicate controls');
+    await page.setViewportSize({ width: 1520, height: 900 }); await page.goto(base + '/showcase');
+    for (const frame of page.frames().slice(1)) await update(frame, fixture, { activeTab: 'overview', sidebarVisible: true });
+    await page.frameLocator('iframe[title="控制台"]').getByRole('heading', { name: '概览', exact: true }).waitFor();
+    assert.equal(await page.frameLocator('iframe[title="控制台"]').locator('.tabs').count(), 0);
+    await page.screenshot({ path: path.join(root, 'media/preview.png') });
+    checks.push('single navigation when sidebar is visible'); assert.deepEqual(errors, []);
+    fs.writeFileSync(path.join(root, 'artifacts/ui-result.json'), JSON.stringify({ ok: true, checks, browser: 'headless Microsoft Edge' }, null, 2));
+    console.log('UI checks passed:', checks.length);
+  } finally { await browser.close(); server.close(); }
+})().catch(e => { console.error(e); server.close(); process.exitCode = 1; });

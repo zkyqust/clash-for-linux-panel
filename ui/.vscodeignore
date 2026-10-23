@@ -1,0 +1,10 @@
+.vscode/**
+.git/**
+node_modules/**
+tests/**
+releases/**
+artifacts/**
+**/__pycache__/**
+package-lock.json
+*.vsix
+*.log
