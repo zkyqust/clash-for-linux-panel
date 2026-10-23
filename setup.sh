@@ -21,6 +21,12 @@ if [ "$BUILD_ONLY" = true ]; then
 fi
 [ "$(uname -s)" = Linux ] || { printf '%s\n' 'Run on Linux, or use --build-only to build the extension.' >&2; exit 1; }
 case "$INSTALL_HOME" in /*) ;; *) printf '%s\n' '--home must be an absolute path.' >&2; exit 2 ;; esac
+for RESOURCE in Country.mmdb geosite.dat; do
+    [ -s "$ROOT/resources/$RESOURCE" ] || {
+        printf 'Missing upstream resource: resources/%s. Download the complete source package.\n' "$RESOURCE" >&2
+        exit 1
+    }
+done
 # Resolve the released/local VSIX before changing an existing installation.
 VSIX_ARGS=()
 [ -z "$VSIX_FILE" ] || VSIX_ARGS+=(--file "$VSIX_FILE")
@@ -31,6 +37,27 @@ if [ ! -f "$INSTALL_HOME/scripts/cmd/clashctl.sh" ] || [ ! -x "$INSTALL_HOME/bin
 else
     printf 'Reusing existing clashctl: %s\n' "$INSTALL_HOME"
 fi
+python3 - "$ROOT/resources" "$INSTALL_HOME/resources" <<'PY'
+import os, pathlib, shutil, sys, tempfile
+source, target = (pathlib.Path(value).resolve() for value in sys.argv[1:])
+target.mkdir(parents=True, exist_ok=True)
+for name in ('Country.mmdb', 'geosite.dat'):
+    destination = target / name
+    if destination.is_file() and destination.stat().st_size:
+        continue
+    temporary = None
+    try:
+        with tempfile.NamedTemporaryFile(dir=target, prefix='.' + name + '-', delete=False) as handle:
+            temporary = pathlib.Path(handle.name)
+            with (source / name).open('rb') as original:
+                shutil.copyfileobj(original, handle)
+        temporary.chmod(0o644)
+        os.replace(temporary, destination)
+        print('Restored upstream resource: ' + name)
+    finally:
+        if temporary is not None:
+            temporary.unlink(missing_ok=True)
+PY
 python3 - "$ROOT/ui" "$INSTALL_HOME/ui" <<'PY'
 import pathlib, shutil, sys
 source, target = (pathlib.Path(value).resolve() for value in sys.argv[1:])

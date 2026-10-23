@@ -1,4 +1,5 @@
 import os
+import hashlib
 from pathlib import Path
 import shutil
 import subprocess
@@ -9,6 +10,7 @@ ROOT = Path(__file__).parents[2]
 REQUIRED = ['.env.example', 'install.sh', 'uninstall.sh', 'scripts/preflight.sh',
             'scripts/lib/operation-lock.sh', 'scripts/lib/install-maintenance.sh',
             'scripts/cmd/clashctl.sh', 'scripts/cmd/update.sh']
+GEODATA = ['resources/Country.mmdb', 'resources/geosite.dat']
 
 
 @unittest.skipUnless(os.name == 'posix' and shutil.which('bash'), 'Linux Bash required')
@@ -19,6 +21,10 @@ class LocalSourceCopyTests(unittest.TestCase):
             target = source / relative
             target.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(ROOT / relative, target)
+        for relative in GEODATA:
+            target = source / relative
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_bytes(b'\x00bundled upstream resource: ' + relative.encode())
         for relative in ['.env', '.env.private', 'data/subscription.yaml', 'bin/mihomo',
                          'archives/kernel.gz', 'ui/build/extension.vsix', 'ui/__pycache__/bridge.pyc',
                          'ui/node_modules/module/index.js', 'ui/artifacts/result.json']:
@@ -44,6 +50,9 @@ class LocalSourceCopyTests(unittest.TestCase):
             self.assertEqual((target / '.env.example').read_bytes(), (source / '.env.example').read_bytes())
             for relative in REQUIRED:
                 self.assertTrue((target / relative).is_file(), relative)
+            for relative in GEODATA:
+                self.assertEqual(hashlib.sha256((target / relative).read_bytes()).hexdigest(),
+                                 hashlib.sha256((source / relative).read_bytes()).hexdigest(), relative)
             for relative in ['.env', '.env.private', 'data', 'bin', 'archives',
                              'ui/build', 'ui/__pycache__', 'ui/node_modules', 'ui/artifacts']:
                 self.assertFalse((target / relative).exists(), relative)

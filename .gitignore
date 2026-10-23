@@ -9,8 +9,6 @@ resources/dist/
 resources/cache.db
 resources/proxies/
 resources/rules/
-resources/*.mmdb
-resources/*.dat
 **/node_modules/
 **/__pycache__/
 **/*.pyc
@@ -24,3 +22,6 @@ resources/*.dat
 *.sock
 .DS_Store
 Thumbs.db
+.idea/
+.vscode/
+test.sh

@@ -6,7 +6,7 @@
 
 ## 安装界面
 
-**服务器已安装 clashctl**：下载 [clashctl-panel-0.3.4.vsix](https://github.com/zkyqust/clash-for-linux-panel/releases/download/v0.3.4/clashctl-panel-0.3.4.vsix)，按下面的步骤安装插件即可。
+**服务器已安装 clashctl**：下载 [clashctl-panel-0.3.5.vsix](https://github.com/zkyqust/clash-for-linux-panel/releases/download/v0.3.5/clashctl-panel-0.3.5.vsix)，按下面的步骤安装插件即可。
 
 **服务器尚未安装 clashctl**：按[仓库安装说明](https://github.com/zkyqust/clash-for-linux-panel#安装方式)运行 `setup.sh`。它会安装 clashctl / Mihomo，并尝试自动安装插件，正常安装不编译界面。
 

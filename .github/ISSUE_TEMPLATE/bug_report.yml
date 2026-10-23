@@ -1,0 +1,84 @@
+name: Bug 反馈
+description: "提交项目 Bug 报告"
+title: "[Bug] "
+labels: ["bug"]
+body:
+  - type: checkboxes
+    id: ensure
+    attributes:
+      label: 前置确认
+      description: 在提交之前，请勾选以下选项以确认您已完成必要的自助排查
+      options:
+        - label: 我确认这是项目 **Bug**， 而非操作不当或使用不清楚。否则请使用其他 Issue 模板或移步[讨论区](https://github.com/nelvko/clashctl/discussions)
+          required: true
+        - label: 我已查阅 [常见问题](https://github.com/nelvko/clashctl/wiki/FAQ)，但仍未找到解决方案
+          required: true
+        - label: 我已使用关键字查询相关 [Issues](https://github.com/nelvko/clashctl/issues?q=is%3Aissue)，但仍未找到解决方案
+          required: true
+        - label: 我已运行 `clashctl update` 并确认问题仍可复现；若安装或更新失败，已在下方提供报错信息。
+          required: true
+
+  - type: input
+    id: branch
+    attributes:
+      label: 使用的分支
+      placeholder: master / ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: version
+    attributes:
+      label: 版本信息
+      description: |
+        请粘贴 `clashctl version` 的完整输出，包含脚本和内核版本信息。
+        若安装尚未完成或命令不可用，请填写安装方式与相关报错。
+      render: shell
+    validations:
+      required: true
+
+  - type: input
+    id: shell
+    attributes:
+      label: Shell 环境
+      placeholder: bash / zsh / ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: system
+    attributes:
+      label: 系统信息
+      description: |
+        请提供系统相关信息，可任选以下命令输出之一：
+        ```bash
+        hostnamectl
+        lsb_release -a
+        uname -a
+        ```
+      render: shell
+    validations:
+      required: true
+
+  - type: textarea
+    id: desc
+    attributes:
+      label: 描述 & 复现
+      description: |
+        请详细描述：
+        1. 操作步骤  
+        2. 期望结果  
+        3. 实际表现  
+        4. ~~必要时~~最好附上截图
+        **请勿泄露订阅、IP 等敏感信息**
+      # placeholder: |
+
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: 日志
+      description: 请提供相关日志输出或截图
+      render: shell

@@ -19,7 +19,7 @@ cd clash-for-linux-panel
 bash setup.sh
 ```
 
-`git clone` 获取源码；`setup.sh` 负责后续安装，流程是：
+`git clone` 获取源码及上游资源；`setup.sh` 负责后续安装，流程是：
 
 **获取发布好的 VSIX → 安装或复用 clashctl / Mihomo → 尝试自动安装 VS Code 插件。**
 
@@ -31,7 +31,7 @@ bash setup.sh
 
 已有 clashctl 时只需安装界面，不必重新运行 `setup.sh`。如果上一步已自动装好插件，也无需重复手动安装。
 
-1. 下载 [clashctl-panel-0.3.4.vsix](https://github.com/zkyqust/clash-for-linux-panel/releases/download/v0.3.4/clashctl-panel-0.3.4.vsix)。如果 `setup.sh` 已准备好 VSIX，直接使用它打印的文件路径。
+1. 下载 [clashctl-panel-0.3.5.vsix](https://github.com/zkyqust/clash-for-linux-panel/releases/download/v0.3.5/clashctl-panel-0.3.5.vsix)。如果 `setup.sh` 已准备好 VSIX，直接使用它打印的文件路径。
 2. 在 VS Code 的 Remote SSH 窗口，打开 **扩展 → … → 从 VSIX 安装**，选择文件并安装到 **SSH 主机**。文件选择器只显示服务器文件时，先将下载的 VSIX 上传服务器。
 3. 按 `Ctrl+Shift+P`，执行 **Developer: Reload Window（重新加载窗口）**，然后打开左侧 Clash Panel。
 4. 在 **连接设置** 中选择“当前 Linux / Remote SSH 窗口”，填写 clashctl 的实际安装目录，默认是 `~/clashctl`。
@@ -54,12 +54,12 @@ VS Code 需要 1.96+。Windows 本地窗口也可安装同一个 VSIX，通过�
 bash setup.sh --home "$HOME/my-clash"
 ```
 
-随后把面板的连接目录也设为 `~/my-clash`。已有安装时可指定原目录，脚本会复用选定目录中的完整 clashctl，不会给目录改名或搬迁。目录选择优先使用 `--home`，其次是环境变量 `CLASHCTL_HOME`，都未设置时使用 `~/clashctl`。
+随后把面板的连接目录也设为 `~/my-clash`。已有安装时可指定原目录，脚本会复用选定目录中的完整 clashctl，并补齐缺失的上游地理库；已有订阅、配置和非空地理库保留，目录不会改名或搬迁。目录选择优先使用 `--home`，其次是环境变量 `CLASHCTL_HOME`，都未设置时使用 `~/clashctl`。
 
 如果已经下载好同版本的 VSIX，可以通过 `--vsix` 使用本地文件，跳过插件包下载：
 
 ```bash
-bash setup.sh --vsix "$HOME/clashctl-panel-0.3.4.vsix"
+bash setup.sh --vsix "$HOME/clashctl-panel-0.3.5.vsix"
 ```
 
 `--vsix` 只提供界面插件；首次安装缺少的内核和工具仍需下载。
@@ -75,10 +75,10 @@ git clone "$GH_PROXY/https://github.com/zkyqust/clash-for-linux-panel.git"
 cd clash-for-linux-panel
 
 curl -fL --retry 2 \
-  "$GH_PROXY/https://github.com/zkyqust/clash-for-linux-panel/releases/download/v0.3.4/clashctl-panel-0.3.4.vsix" \
-  -o "$HOME/clashctl-panel-0.3.4.vsix"
+  "$GH_PROXY/https://github.com/zkyqust/clash-for-linux-panel/releases/download/v0.3.5/clashctl-panel-0.3.5.vsix" \
+  -o "$HOME/clashctl-panel-0.3.5.vsix"
 
-bash setup.sh --vsix "$HOME/clashctl-panel-0.3.4.vsix"
+bash setup.sh --vsix "$HOME/clashctl-panel-0.3.5.vsix"
 ```
 
 这套命令通过加速地址下载源码和 VSIX；安装器再读取 `GH_PROXY` 下载内核及工具。VSIX 下载器本身不读取 `GH_PROXY`，因此这里先用 `curl` 下载，再通过 `--vsix` 传入。`GH_PROXY` 是下载地址前缀，与终端代理和 TUN 开关独立。
@@ -93,7 +93,7 @@ bash setup.sh --vsix "$HOME/clashctl-panel-0.3.4.vsix"
 python3 ui/tools/package.py
 ```
 
-Windows 可用 `py` 代替 `python3`，也可执行 `bash setup.sh --build-only`。生成文件为 `ui/build/clashctl-panel-0.3.4.vsix`。这个步骤只构建插件，不安装内核；普通安装直接使用 Release 的 VSIX 即可。
+Windows 可用 `py` 代替 `python3`，也可执行 `bash setup.sh --build-only`。生成文件为 `ui/build/clashctl-panel-0.3.5.vsix`。这个步骤只构建插件，不安装内核；普通安装直接使用 Release 的 VSIX 即可。
 
 ## 第一次打开面板
 
@@ -137,14 +137,16 @@ Windows 可用 `py` 代替 `python3`，也可执行 `bash setup.sh --build-only`
 ```text
 install.sh / uninstall.sh   上游 clashctl 安装与卸载器
 scripts/                   上游管理脚本
-resources/                 无个人配置的上游模板
+resources/                 上游模板、Country.mmdb 和 geosite.dat
 ui/                        扩展、Python 桥接、构建工具和测试源码
 setup.sh                   整体安装入口，使用发布版或本地 VSIX
 UPSTREAM.json              上游来源和固定提交
+UPSTREAM_FILES.json        全部上游文件的校验清单与保留位置
+tests/                     上游回归测试源码
 UPSTREAM_README.md         上游原始说明
 ```
 
-运行后产生的 data、bin、archives、.env 和构建产物均被 Git 忽略。Geo 数据文件和 Mihomo 二进制不在源码包内，由安装器或内核在需要时获取。
+运行后产生的 data、bin、archives、.env 和构建产物均被 Git 忽略。上游自带的 `Country.mmdb` 和 `geosite.dat` 完整保留在源码及安装目录中；Mihomo 程序由安装器下载。
 
 ## 开发与测试
 
@@ -152,7 +154,7 @@ UPSTREAM_README.md         上游原始说明
 
 ## 来源与许可
 
-- 管理脚本来自 [nelvko/clashctl](https://github.com/nelvko/clashctl)，MIT License，保留上游版权。固定提交见 UPSTREAM.json。
+- 管理脚本、运行资源和回归测试来自 [nelvko/clashctl](https://github.com/nelvko/clashctl)，完整保留上游必需文件及 MIT 版权。固定提交见 [UPSTREAM.json](UPSTREAM.json)，全部 83 个上游文件的校验与保留位置见 [UPSTREAM_FILES.json](UPSTREAM_FILES.json)。
 - 界面与桥接使用 MIT License，见 [ui/LICENSE](ui/LICENSE)。
 - 实际运行内核为 [MetaCubeX/mihomo](https://github.com/MetaCubeX/mihomo)，由上游安装器下载，遵循其自身许可。
 

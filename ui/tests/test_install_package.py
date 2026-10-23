@@ -96,7 +96,7 @@ class ReleasedPackageTests(unittest.TestCase):
 
 @unittest.skipUnless(os.name == 'posix' and shutil.which('bash'), 'Linux Bash required')
 class SetupWorkflowTests(unittest.TestCase):
-    def check_install(self, reuse=False):
+    def check_install(self, reuse=False, existing_geodata=False):
         with tempfile.TemporaryDirectory() as directory:
             base = Path(directory)
             root, user = base / 'source', base / 'user'
@@ -105,6 +105,9 @@ class SetupWorkflowTests(unittest.TestCase):
             shutil.copy2(UI.parent / 'setup.sh', root / 'setup.sh')
             shutil.copy2(UI / 'tools/install_package.py', root / 'ui/tools/install_package.py')
             (root / 'ui/package.json').write_text(json.dumps(META))
+            (root / 'resources').mkdir()
+            for name in ('Country.mmdb', 'geosite.dat'):
+                (root / 'resources' / name).write_bytes(b'bundled geodata: ' + name.encode())
             # Source compilation must never run in a normal installation.
             (root / 'ui/tools/package.py').write_text('raise RuntimeError("source build was invoked")\n')
             (root / 'install.sh').write_text('''#!/usr/bin/env bash
@@ -129,6 +132,10 @@ printf '%s' "$3" > "$HOME/installer-target"
                     (target / 'bin' / name).write_text('#!/bin/sh\nexit 0\n')
                     (target / 'bin' / name).chmod(0o755)
                 (target / 'subscription-marker').write_text('keep existing configuration')
+                if existing_geodata:
+                    (target / 'resources').mkdir()
+                    for name in ('Country.mmdb', 'geosite.dat'):
+                        (target / 'resources' / name).write_bytes(b'keep updated geodata: ' + name.encode())
                 arguments += ['--home', str(target)]
             env = os.environ.copy()
             env.pop('CLASHCTL_HOME', None)
@@ -143,6 +150,9 @@ printf '%s' "$3" > "$HOME/installer-target"
             self.assertEqual((target / 'ui/build' / self.vsix_name).read_bytes(), supplied.read_bytes())
             self.assertEqual((user / 'extension-install-arguments').read_text().splitlines(),
                              ['--install-extension', str(target / 'ui/build' / self.vsix_name), '--force'])
+            for name in ('Country.mmdb', 'geosite.dat'):
+                expected = (b'keep updated geodata: ' if existing_geodata else b'bundled geodata: ') + name.encode()
+                self.assertEqual((target / 'resources' / name).read_bytes(), expected)
             if reuse:
                 self.assertFalse((user / 'installer-target').exists())
                 self.assertEqual((target / 'subscription-marker').read_text(), 'keep existing configuration')
@@ -159,3 +169,6 @@ printf '%s' "$3" > "$HOME/installer-target"
 
     def test_existing_custom_install_is_reused_without_rename_or_rebuild(self):
         self.check_install(reuse=True)
+
+    def test_existing_geodata_is_preserved_when_reusing_an_install(self):
+        self.check_install(reuse=True, existing_geodata=True)

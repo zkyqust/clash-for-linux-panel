@@ -1,0 +1,506 @@
+{
+  "project": "nelvko/clashctl",
+  "commit": "cb609e8bdfc24559bbabbf3ce3c199be9e3e4ad2",
+  "files": [
+    {
+      "path": ".editorconfig",
+      "local_path": ".editorconfig",
+      "sha256": "f80c1b99748de28018fbe6905065c6939da5b97e8bab7d9477936ea9e124171d",
+      "size": 70
+    },
+    {
+      "path": ".env.example",
+      "local_path": ".env.example",
+      "sha256": "66dc9702feb8e3ff38f53888be1e04094d247419bac6f1c4b6c8a2fe4dc98af3",
+      "size": 1184
+    },
+    {
+      "path": ".gitattributes",
+      "local_path": ".github/upstream/gitattributes.original",
+      "sha256": "d60f352d0db1404c70afb4bb8b2ca3fd1c610572aa40720e8a0b7baa7885418c",
+      "size": 19
+    },
+    {
+      "path": ".github/FUNDING.yml",
+      "local_path": ".github/upstream/FUNDING.yml",
+      "sha256": "564513482632c28af8552943cdf0e96369a3d6bd90f55904466558382fc46e5a",
+      "size": 952
+    },
+    {
+      "path": ".github/ISSUE_TEMPLATE/bug_report.yml",
+      "local_path": ".github/ISSUE_TEMPLATE/bug_report.yml",
+      "sha256": "938ec1f357fd85b4d8fcfd671d801e897708aa3ba29c95cea3af3d8280e67728",
+      "size": 2443
+    },
+    {
+      "path": ".github/ISSUE_TEMPLATE/config.yml",
+      "local_path": ".github/ISSUE_TEMPLATE/config.yml",
+      "sha256": "05905c8f244d51298bbd1778c286c8a6c9f7adf0d0e5a5f72f764d71ec82cc64",
+      "size": 27
+    },
+    {
+      "path": ".github/ISSUE_TEMPLATE/feat_report.yml",
+      "local_path": ".github/ISSUE_TEMPLATE/feat_report.yml",
+      "sha256": "ceb1f36adcdff9893e4ffd9551cf962d4a49af1a3e71a5d913bf567c7099c10e",
+      "size": 261
+    },
+    {
+      "path": ".github/ISSUE_TEMPLATE/qa.yml",
+      "local_path": ".github/ISSUE_TEMPLATE/qa.yml",
+      "sha256": "d5b050a5046ec38ff627d096e3c3a888343e55373e59a3538043079b856470f9",
+      "size": 1345
+    },
+    {
+      "path": ".github/workflows/shell-tests.yml",
+      "local_path": ".github/upstream/shell-tests.yml",
+      "sha256": "20b22a90515dd6bb8bf60fbfeb0f83f5ecc02ec162caef528432b2245c6053bf",
+      "size": 1189
+    },
+    {
+      "path": ".github/workflows/stale-issues.yml",
+      "local_path": ".github/upstream/stale-issues.yml",
+      "sha256": "95efc7b8cff730b5bf52174bf7d2da1756cd02aba7a9218777cb7fe686528ed2",
+      "size": 728
+    },
+    {
+      "path": ".gitignore",
+      "local_path": ".github/upstream/gitignore.original",
+      "sha256": "a5ad754371c36d4989a0343c29369fd443340f6c8016ccbf8e6e72e1f788aa65",
+      "size": 391
+    },
+    {
+      "path": ".shellcheckrc",
+      "local_path": ".shellcheckrc",
+      "sha256": "3946e7ba6b444931668a4907a75ce10efa0ca008f7796b00bc4296b4aa3d82dd",
+      "size": 89
+    },
+    {
+      "path": "LICENSE",
+      "local_path": "LICENSE",
+      "sha256": "580b19e9ad0bfd7de1b969d44882bff6ebf36668cf31a7e4d23fe0707c24a0de",
+      "size": 1089,
+      "upstream_byte_sha256": "40b9ce6ccb0d7790e28262eccf0188f7df6b74dcf4e9ba1274fa6f39d0785818"
+    },
+    {
+      "path": "README.md",
+      "local_path": "UPSTREAM_README.md",
+      "sha256": "7d054352a0a6be4bf1b107f15e5d4e5ef7fdad58610c39153181283180dbbabc",
+      "size": 6715
+    },
+    {
+      "path": "install.sh",
+      "local_path": ".github/upstream/install.sh.original",
+      "sha256": "e3bf6a242f9a977f40ae5eca00f715761178ff2d2268a936d55a2590db7a6f91",
+      "size": 67560
+    },
+    {
+      "path": "resources/Country.mmdb",
+      "local_path": "resources/Country.mmdb",
+      "sha256": "757ae7e962c3ca16b5a3398a44b19ff27a8e1d242d44f4a18dcc080e9b016cc3",
+      "size": 10357983
+    },
+    {
+      "path": "resources/geosite.dat",
+      "local_path": "resources/geosite.dat",
+      "sha256": "a203c04d153d0e84cf558220fe651df575b97f0633e8b4f6fd29a57b77dc47f8",
+      "size": 4126531
+    },
+    {
+      "path": "resources/mixin.yaml.example",
+      "local_path": "resources/mixin.yaml.example",
+      "sha256": "7364db5c064c89cac0a01cb33799d095bc9790a95c3f096b018bae9a981d435c",
+      "size": 1430
+    },
+    {
+      "path": "resources/profiles.yaml",
+      "local_path": "resources/profiles.yaml",
+      "sha256": "5d66c1979d886f10cf546688425287f739ba98692ad64898f17b69b7431f7cf5",
+      "size": 56
+    },
+    {
+      "path": "resources/profiles/.gitkeep",
+      "local_path": "resources/profiles/.gitkeep",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0
+    },
+    {
+      "path": "scripts/cmd/clashctl.fish",
+      "local_path": "scripts/cmd/clashctl.fish",
+      "sha256": "c88154b706beb07270ef4cb1ac9102f3df01a938c105c31d3e11164a8adc1404",
+      "size": 2772
+    },
+    {
+      "path": "scripts/cmd/clashctl.sh",
+      "local_path": "scripts/cmd/clashctl.sh",
+      "sha256": "85d0432223bd4fb0e07ca4036689413acaaadde5ff58114aad8ac99f3f9ca140",
+      "size": 1438
+    },
+    {
+      "path": "scripts/cmd/help.sh",
+      "local_path": "scripts/cmd/help.sh",
+      "sha256": "eea0c07ec659b17aa0114d0e70538edc8723f4e75b227fade0e85e27f2dddd34",
+      "size": 957
+    },
+    {
+      "path": "scripts/cmd/log.sh",
+      "local_path": "scripts/cmd/log.sh",
+      "sha256": "fd99090186c6a65b1674cdfeec93d08218ca4c6f9349015237d697bc0a793249",
+      "size": 65
+    },
+    {
+      "path": "scripts/cmd/mixin.sh",
+      "local_path": "scripts/cmd/mixin.sh",
+      "sha256": "e663d9b8d309ec597ffba4791018d65a50cbf0007e3f348aabb2db89f9ab2030",
+      "size": 1041
+    },
+    {
+      "path": "scripts/cmd/node.sh",
+      "local_path": "scripts/cmd/node.sh",
+      "sha256": "966f5bbd0b198f819822ced5b97aa9efdb5b8bec1b7482a1989b02d156df3de2",
+      "size": 34668
+    },
+    {
+      "path": "scripts/cmd/off.sh",
+      "local_path": "scripts/cmd/off.sh",
+      "sha256": "8ee6babeed45d73175c08a5bba1742df9913ed3013f334ba4204c4a7e725a292",
+      "size": 913
+    },
+    {
+      "path": "scripts/cmd/on.sh",
+      "local_path": "scripts/cmd/on.sh",
+      "sha256": "a2bd6faa3c7edf5d40b56dd4eca8080f2825f910a4c3e272d162fdf28a0d470a",
+      "size": 2146
+    },
+    {
+      "path": "scripts/cmd/secret.sh",
+      "local_path": "scripts/cmd/secret.sh",
+      "sha256": "dd3390631179b4aad169d9b88b3d6d00b2d8be52056f43e4ffec5f9079670f46",
+      "size": 1349
+    },
+    {
+      "path": "scripts/cmd/start.sh",
+      "local_path": "scripts/cmd/start.sh",
+      "sha256": "9f9f9c69230d9d03a6bb9c383c684136d61c9b2cb4b4212076110592b512c9f6",
+      "size": 1430
+    },
+    {
+      "path": "scripts/cmd/status.sh",
+      "local_path": "scripts/cmd/status.sh",
+      "sha256": "6c889077b37482559c604a97f6e7a1f2c47b3b71ced7c49f7e406936cc21ae70",
+      "size": 14147
+    },
+    {
+      "path": "scripts/cmd/stop.sh",
+      "local_path": "scripts/cmd/stop.sh",
+      "sha256": "49bc895804ba8db6daa19e4474012d966e35d8b2e86ec9ea179751efb07e4e96",
+      "size": 909
+    },
+    {
+      "path": "scripts/cmd/sub.sh",
+      "local_path": "scripts/cmd/sub.sh",
+      "sha256": "0e1625e2533f4f1019a305d9942543aa023f8538d3bdb874da7c71c9b7286f7a",
+      "size": 37870
+    },
+    {
+      "path": "scripts/cmd/tun.sh",
+      "local_path": "scripts/cmd/tun.sh",
+      "sha256": "6107c89c6db2c997bb4f7ecd4fb801b5fb2a1c3638f3ca9892947cfb6e25ff0e",
+      "size": 2588
+    },
+    {
+      "path": "scripts/cmd/ui.sh",
+      "local_path": "scripts/cmd/ui.sh",
+      "sha256": "ed1d4b4fba34844ffeda22b91a886e6940325823710ad9f76d97fba31f69ce63",
+      "size": 1977
+    },
+    {
+      "path": "scripts/cmd/update.sh",
+      "local_path": "scripts/cmd/update.sh",
+      "sha256": "9d865ec28270058453041ff4d288288bd7dc2a65c31d37bb256d1201e1b37398",
+      "size": 9545
+    },
+    {
+      "path": "scripts/cmd/upgrade.sh",
+      "local_path": "scripts/cmd/upgrade.sh",
+      "sha256": "55f176fb3e14493648ece9a6e37fc4835011b0e03f80017e4cd5f56de5e23843",
+      "size": 1884
+    },
+    {
+      "path": "scripts/cmd/version.sh",
+      "local_path": "scripts/cmd/version.sh",
+      "sha256": "acea7e2cd7a0480448879939c7dab3114efe78713e4a1e398fe16268d5c8bac0",
+      "size": 1783
+    },
+    {
+      "path": "scripts/init/openrc.sh",
+      "local_path": "scripts/init/openrc.sh",
+      "sha256": "217f31c81042d2df82c8b17a05ac1971c28978e98d552d2f986b7f610bbca522",
+      "size": 247
+    },
+    {
+      "path": "scripts/init/runit.sh",
+      "local_path": "scripts/init/runit.sh",
+      "sha256": "48ceb43f3b9b366483f1ebd6b5ddc680186a7bbc9bea693e7cc5c524a6fba948",
+      "size": 63
+    },
+    {
+      "path": "scripts/init/systemd-user.sh",
+      "local_path": "scripts/init/systemd-user.sh",
+      "sha256": "f6a79f1744f54a17a3c83ab4b456636d24e68a767a5f66362042e42f5ae618c2",
+      "size": 384
+    },
+    {
+      "path": "scripts/init/systemd.sh",
+      "local_path": "scripts/init/systemd.sh",
+      "sha256": "bfb30f18ac53926d17b530891f5ea9c740e98e9c9a6145a842e5b84f8a6dcc5e",
+      "size": 598
+    },
+    {
+      "path": "scripts/init/sysvinit.sh",
+      "local_path": "scripts/init/sysvinit.sh",
+      "sha256": "4b3f247dd08f0072160effb0a980c6266cccca94696c6d7e681a570fe2acb5a4",
+      "size": 1019
+    },
+    {
+      "path": "scripts/lib/common.sh",
+      "local_path": "scripts/lib/common.sh",
+      "sha256": "13a23c3f5d194a13494cd51e7e8754373f03ad528b0345254a0642b743c89781",
+      "size": 18873
+    },
+    {
+      "path": "scripts/lib/config.sh",
+      "local_path": "scripts/lib/config.sh",
+      "sha256": "87452edc1322f18e340ca892e6f910eb98db194df1af22b8910d3bed98c1a93a",
+      "size": 9435
+    },
+    {
+      "path": "scripts/lib/convert.sh",
+      "local_path": "scripts/lib/convert.sh",
+      "sha256": "3b0719463472428263e17e2cc569ce87f525e696590c3f85ae1d0d55ed3e20d9",
+      "size": 9108
+    },
+    {
+      "path": "scripts/lib/install-maintenance.sh",
+      "local_path": "scripts/lib/install-maintenance.sh",
+      "sha256": "91721c16064c9c4842b8e34fcaf918da2ce13919eb735e77c3ebb50d016c7184",
+      "size": 10422
+    },
+    {
+      "path": "scripts/lib/operation-lock.sh",
+      "local_path": "scripts/lib/operation-lock.sh",
+      "sha256": "1d3d6733f526a0ba2662a5f6277f555e3802f99d7b1e7421d591e6e14e09d1ba",
+      "size": 9751
+    },
+    {
+      "path": "scripts/lib/service-process.sh",
+      "local_path": "scripts/lib/service-process.sh",
+      "sha256": "048327e8cb46d6c02278306cb58189138adc8e1f05ae2fa14d5ca2a75514006b",
+      "size": 16762
+    },
+    {
+      "path": "scripts/lib/service.sh",
+      "local_path": "scripts/lib/service.sh",
+      "sha256": "45509e11733ef2b3be9219af5e1a8048370ee8164ceeaec9d846cc80723749e3",
+      "size": 30782
+    },
+    {
+      "path": "scripts/lib/shell.sh",
+      "local_path": "scripts/lib/shell.sh",
+      "sha256": "7cc48abfb77ea6d4520296092e272195f7b8741da669d8e2ef8e197ec8595ec2",
+      "size": 1717
+    },
+    {
+      "path": "scripts/lib/tun.sh",
+      "local_path": "scripts/lib/tun.sh",
+      "sha256": "209b14799c16695a2061d82287fbee513ee1ba0ed9cf7b21d074a5492cb23dc7",
+      "size": 3404
+    },
+    {
+      "path": "scripts/preflight.sh",
+      "local_path": "scripts/preflight.sh",
+      "sha256": "d0c51afea1745ea107d1b18ede454c06fd0e05d1b6af125536a7c88848d7e762",
+      "size": 37426
+    },
+    {
+      "path": "tests/command-load.sh",
+      "local_path": "tests/command-load.sh",
+      "sha256": "dc5b91bbd8e1eb2dee8aa5864a2c6375de74d4cca1ca1a594902312565da62cc",
+      "size": 8700
+    },
+    {
+      "path": "tests/common-ui.sh",
+      "local_path": "tests/common-ui.sh",
+      "sha256": "a91e82c59dec8daf3f188b5d712eeb57a44e6f811d605e7eeb6744bf6a7eaa0b",
+      "size": 16800
+    },
+    {
+      "path": "tests/download-resume.sh",
+      "local_path": "tests/download-resume.sh",
+      "sha256": "ae5e584debc2310ad91765ba6f34935b8132c517a95119b5802f7c62f69cf3e0",
+      "size": 11550
+    },
+    {
+      "path": "tests/install-legacy-nohup.sh",
+      "local_path": "tests/install-legacy-nohup.sh",
+      "sha256": "f858e4bf55282e5aecea9b8ac97e1ccda53645f98d3ffc0eb70ff1de27be22b5",
+      "size": 12294
+    },
+    {
+      "path": "tests/install-maintenance.sh",
+      "local_path": "tests/install-maintenance.sh",
+      "sha256": "e9d4d8ab5c4f7633d0f697ea21838307b641109b9e58298b0f421f8c443952dd",
+      "size": 9136
+    },
+    {
+      "path": "tests/install-service.sh",
+      "local_path": "tests/install-service.sh",
+      "sha256": "490a361152b3d592474fc96b427e3141571e643a5dc54c3f14fb8e6693e7ec59",
+      "size": 24533
+    },
+    {
+      "path": "tests/install-update.sh",
+      "local_path": "tests/install-update.sh",
+      "sha256": "cca5466f6de6c62e54650bc81a67ea6865a7d311f1d7cb72c14243c11d6ac4d5",
+      "size": 93759
+    },
+    {
+      "path": "tests/lazy-components.sh",
+      "local_path": "tests/lazy-components.sh",
+      "sha256": "c8ce57f75df2a0de739cc2897ab38c2c32bed11ae80f92bcca92539dcee83803",
+      "size": 3632
+    },
+    {
+      "path": "tests/mihomo-archives.sh",
+      "local_path": "tests/mihomo-archives.sh",
+      "sha256": "f8435858229817bb5dfd0e2b756540bef5aa17cf915f52ccb331ebc2f015d48a",
+      "size": 7108
+    },
+    {
+      "path": "tests/no-subscription.sh",
+      "local_path": "tests/no-subscription.sh",
+      "sha256": "95bcd39ebdfc15b0f5cb17d06c8c7e6d9932a8b48c52584f67f5e3483c3e0c07",
+      "size": 8876
+    },
+    {
+      "path": "tests/nohup-service.sh",
+      "local_path": "tests/nohup-service.sh",
+      "sha256": "e7309b3ce54c0473c71ededa7470968cf9ce232523ce9095aa80175f13546d21",
+      "size": 8823
+    },
+    {
+      "path": "tests/operation-lock.sh",
+      "local_path": "tests/operation-lock.sh",
+      "sha256": "0b3c054adc613b218bcc1c0846c75122d3b41f114344ac5158b24128b794802c",
+      "size": 20502
+    },
+    {
+      "path": "tests/port-detection.sh",
+      "local_path": "tests/port-detection.sh",
+      "sha256": "58c7d8d210ab5a3dd6177127aad8fab9ceeedd8d02c249f408c28762190ed44d",
+      "size": 2541
+    },
+    {
+      "path": "tests/preflight-components.sh",
+      "local_path": "tests/preflight-components.sh",
+      "sha256": "f6df1d7c1a4a50c558bd62b3040d23cb02b584483d1b8582d708dfd63af34250",
+      "size": 27414
+    },
+    {
+      "path": "tests/proxy-lifecycle.sh",
+      "local_path": "tests/proxy-lifecycle.sh",
+      "sha256": "8c101a481004510846c812091f5d8570b8c20864e1c90441efa07f3ea1317905",
+      "size": 12484
+    },
+    {
+      "path": "tests/run-all.sh",
+      "local_path": "tests/run-all.sh",
+      "sha256": "5e15f44251096d205e30d0198c4eed5568ff913fc4466c223b596953dce5ad86",
+      "size": 1364
+    },
+    {
+      "path": "tests/service-basic.sh",
+      "local_path": "tests/service-basic.sh",
+      "sha256": "e4cee0c23afaee20f687174c28b3abc2faa19a5b095106c4fc91296ce690793a",
+      "size": 2911
+    },
+    {
+      "path": "tests/service-state.sh",
+      "local_path": "tests/service-state.sh",
+      "sha256": "d81beaea1f2aa88d51e51e38b31a3829a43df6597cede67747399867051c9b79",
+      "size": 10538
+    },
+    {
+      "path": "tests/service-uptime.sh",
+      "local_path": "tests/service-uptime.sh",
+      "sha256": "514feb9950ea1a14deb71cd010a5fd8717c92c921e61b2f3ad82b4729f4969ef",
+      "size": 5682
+    },
+    {
+      "path": "tests/shell-integration.sh",
+      "local_path": "tests/shell-integration.sh",
+      "sha256": "35be4373ca24df7940ee52790d0315182af392ef0cc679731f90e90d6898b6ce",
+      "size": 7625
+    },
+    {
+      "path": "tests/status.sh",
+      "local_path": "tests/status.sh",
+      "sha256": "6d38724a1329e4702c5f6e96e3337f8dd88af5f7c8aab89da041d084a338ff77",
+      "size": 33130
+    },
+    {
+      "path": "tests/sub-convert-validation.sh",
+      "local_path": "tests/sub-convert-validation.sh",
+      "sha256": "dfdb35c70080e9962f97d297a9c93000978cd0072a2b3c7d111e511082074fab",
+      "size": 1599
+    },
+    {
+      "path": "tests/sub-input.sh",
+      "local_path": "tests/sub-input.sh",
+      "sha256": "e9b56ae307c5f9f15e30c3093941536160ebf466b5d07037d72ccf09a915e6d4",
+      "size": 5424
+    },
+    {
+      "path": "tests/subscription-lock.sh",
+      "local_path": "tests/subscription-lock.sh",
+      "sha256": "54bf24484f242e4344ab78f9f743cc11bdd38633e7c13d7197ffcab5fbef2e46",
+      "size": 10647
+    },
+    {
+      "path": "tests/systemd-user.sh",
+      "local_path": "tests/systemd-user.sh",
+      "sha256": "8d19b2102257901cb52f370be204f67eae0074afe9e4cd982287a3b2bf998c6a",
+      "size": 17560
+    },
+    {
+      "path": "tests/tun-status.sh",
+      "local_path": "tests/tun-status.sh",
+      "sha256": "4809817312849d2484145a42bbac51844102cdd645362875ff9ba7a658cc714f",
+      "size": 4486
+    },
+    {
+      "path": "tests/uninstall-scope.sh",
+      "local_path": "tests/uninstall-scope.sh",
+      "sha256": "b5d8716063416920cc74c303538f9ee6c1f926f7f6963cdc762b6e5cce06dd84",
+      "size": 19692
+    },
+    {
+      "path": "tests/update-shells.sh",
+      "local_path": "tests/update-shells.sh",
+      "sha256": "824de45a3af3fd9154ef042865cedd958f6e8bf24b6db89a0c4dd21b10a2d3dd",
+      "size": 7220
+    },
+    {
+      "path": "tests/zsh-commands.sh",
+      "local_path": "tests/zsh-commands.sh",
+      "sha256": "fc844b4370f3fccdbfc85371a1d6bd8caefc4f77b45b53112c6b4c71cd2135f8",
+      "size": 10103
+    },
+    {
+      "path": "uninstall.sh",
+      "local_path": ".github/upstream/uninstall.sh.original",
+      "sha256": "04b4c9e2356c86f5afc55c7a5da48a5807fc0e8afe0c954f79caa5d3f2102e34",
+      "size": 8773
+    }
+  ],
+  "checksum_format": "SHA256; text uses LF line endings, binary geodata is byte-exact"
+}

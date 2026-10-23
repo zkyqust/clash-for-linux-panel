@@ -3,5 +3,5 @@
   "url": "https://github.com/nelvko/clashctl",
   "commit": "cb609e8bdfc24559bbabbf3ce3c199be9e3e4ad2",
   "license": "MIT",
-  "changes": "Runtime files and binary geodata excluded. Installer and uninstaller default directory changed to ~/clashctl; explicit paths and CLASHCTL_HOME remain supported. Local-source copying explicitly preserves the required .env.example template after VCS ignore filtering."
+  "changes": "All upstream runtime files, bundled Country.mmdb/geosite.dat and regression tests retained. Original file checksums and reference locations are recorded in UPSTREAM_FILES.json. Root README, installation defaults and local-source privacy filtering are adapted for this panel. Upstream author funding and issue-cleanup workflow are retained as inactive reference files under .github/upstream; upstream shell tests target this repository main branch. Panel setup checks bundled resources and atomically restores missing geodata when reusing an installation, without replacing existing nonempty databases."
 }
