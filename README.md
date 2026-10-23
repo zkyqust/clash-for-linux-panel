@@ -63,19 +63,23 @@ bash setup.sh --vsix "$HOME/clashctl-panel.vsix"
 
 ## 服务器无法直接访问 GitHub
 
-先在可以访问 GitHub 的电脑上，从[下载页面](https://github.com/zkyqust/clash-for-linux-panel/releases/latest)下载 VSIX，上传到服务器的主目录，并命名为 `clashctl-panel.vsix`。
-
-然后在服务器终端执行：
+在服务器的远程终端执行，源码和 VSIX 都会通过加速地址下载：
 
 ```bash
 export GH_PROXY="https://gh-proxy.com"
 cd "$HOME"
 git clone "$GH_PROXY/https://github.com/zkyqust/clash-for-linux-panel.git"
 cd clash-for-linux-panel
+
+PANEL_VERSION=$(python3 -c 'import json; print(json.load(open("ui/package.json", encoding="utf-8"))["version"])')
+curl -fL --retry 2 \
+  "$GH_PROXY/https://github.com/zkyqust/clash-for-linux-panel/releases/download/v${PANEL_VERSION}/clashctl-panel-${PANEL_VERSION}.vsix" \
+  -o "$HOME/clashctl-panel.vsix"
+
 bash setup.sh --vsix "$HOME/clashctl-panel.vsix"
 ```
 
-源码和内核所需的 GitHub 下载使用加速地址，插件使用已上传的文件。`GH_PROXY` 只用于下载，与终端默认代理和 TUN 开关独立。
+命令自动读取源码中的插件版本，下载对应的 VSIX，无需手动填写版本号或上传安装包。安装器也会使用 `GH_PROXY` 下载所需的内核和工具。请在同一个终端执行这些命令；`GH_PROXY` 只用于下载，与终端默认代理和 TUN 开关独立。
 
 如果服务器也无法访问加速地址，可在电脑上下载[源码 ZIP](https://github.com/zkyqust/clash-for-linux-panel/archive/refs/heads/main.zip)和 VSIX，上传并解压源码，进入包含 `setup.sh` 的目录后执行安装命令。首次安装所需的内核和工具仍需有可用的下载来源。
 
