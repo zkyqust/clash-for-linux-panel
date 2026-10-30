@@ -17,6 +17,66 @@ END = '# <<< clash-panel core autostart <<<'
 LEGACY = ('# >>> clashctl terminal autostart >>>', '# <<< clashctl terminal autostart <<<')
 
 
+CORE_SERVICE_SCRIPT = '''source "$CLASHCTL_HOME/scripts/cmd/clashctl.sh" || exit
+
+detect_service_manager || exit 1
+if [ "$service_manager" = nohup ]; then
+    _service_process_lock_acquire "$service_pid_path" || exit 1
+    panel_rc=0
+    if ! _service_process_record_pid "$service_pid_path" >/dev/null 2>&1; then
+        if panel_identity=$("$CLASH_PANEL_PYTHON" -c "$CLASH_PANEL_CORE_SOURCE" --find-core "$BIN_KERNEL" "$CLASH_RESOURCES_DIR" "$CLASH_CONFIG_RUNTIME"); then
+            if [ -n "$panel_identity" ]; then
+                IFS=$'\t' read -r panel_pid panel_start panel_argv panel_exe <<<"$panel_identity"
+                if _service_process_identity_matches "$panel_pid" "$panel_start" "$panel_argv" "$panel_exe"; then
+                    _service_process_record_create "$service_pid_path" "$panel_pid" "$BIN_KERNEL" "$BIN_KERNEL" -d "$CLASH_RESOURCES_DIR" -f "$CLASH_CONFIG_RUNTIME" || panel_rc=1
+                else
+                    panel_rc=1
+                fi
+            fi
+        else
+            panel_rc=1
+        fi
+    fi
+    _service_process_lock_release "$_SERVICE_PROCESS_LOCK_PATH" || exit 1
+    [ "$panel_rc" -eq 0 ] || exit 1
+fi
+clashctl "$@"
+'''
+
+
+def find_core_process(binary, resources, runtime, proc_root='/proc'):
+    """Recover one current-user process, using the same exact identity as upstream."""
+    expected = b'\0'.join(os.fsencode(v) for v in (binary, '-d', resources, '-f', runtime)) + b'\0'
+    executable = str(Path(binary).resolve())
+    matches = []
+    for process in Path(proc_root).iterdir():
+        if not process.name.isdigit():
+            continue
+        try:
+            if process.stat().st_uid != os.geteuid():
+                continue
+            before = (process / 'stat').read_text(encoding='utf-8', errors='replace').rsplit(') ', 1)[1].split()
+            if before[0] in ('Z', 'X') or (process / 'cmdline').read_bytes() != expected:
+                continue
+            actual = os.readlink(process / 'exe')
+            if actual.endswith(' (deleted)'):
+                actual = actual[:-10]
+            if actual != executable:
+                continue
+            identity = (process / 'exe').stat()
+            after = (process / 'stat').read_text(encoding='utf-8', errors='replace').rsplit(') ', 1)[1].split()
+            if before[19] != after[19] or after[0] in ('Z', 'X'):
+                continue
+            matches.append('\t'.join((process.name, before[19], expected.hex(),
+                                      str(identity.st_dev) + ':' + str(identity.st_ino))))
+        except (OSError, IndexError):
+            # Processes may exit while /proc is being read; never guess their identity.
+            continue
+    if len(matches) > 1:
+        raise ValueError('发现多个属于当前安装的内核进程，无法安全修正进程记录。')
+    return matches[0] if matches else ''
+
+
 def atomic_write(path, content, mode=0o600):
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -139,9 +199,11 @@ def run_autostart(root):
         env.pop('BASH_ENV', None)
         env.pop('ENV', None)
         # A fixed noninteractive Bash command bypasses the terminal hook itself.
-        command = 'source "$CLASHCTL_HOME/scripts/cmd/clashctl.sh" || exit; clashctl start'
+        env['CLASH_PANEL_PYTHON'] = sys.executable
+        env['CLASH_PANEL_CORE_SOURCE'] = Path(__file__).read_text(encoding='utf-8')
+        command = CORE_SERVICE_SCRIPT
         with (root / 'data/terminal-autostart.log').open('ab') as log:
-            result = subprocess.run(['bash', '--noprofile', '--norc', '-c', command], env=env,
+            result = subprocess.run(['bash', '--noprofile', '--norc', '-c', command, 'clash-panel', 'start'], env=env,
                                     stdin=subprocess.DEVNULL, stdout=log, stderr=log, timeout=45)
         if result.returncode:
             raise ValueError('core startup failed')
@@ -149,6 +211,13 @@ def run_autostart(root):
 
 
 if __name__ == '__main__':
+    if sys.argv[1:2] == ['--find-core']:
+        try:
+            print(find_core_process(*sys.argv[2:5]))
+        except Exception as exc:
+            print('Clash Panel：无法核对内核进程：' + str(exc), file=sys.stderr)
+            sys.exit(1)
+        sys.exit(0)
     try:
         run_autostart(sys.argv[1])
     except Exception:

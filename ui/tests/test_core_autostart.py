@@ -76,7 +76,7 @@ class CoreAutostartTests(unittest.TestCase):
     def test_interactive_shell_starts_core_but_disabled_and_background_shell_do_not(self):
         scripts = self.root / 'scripts/cmd'
         scripts.mkdir(parents=True)
-        (scripts / 'clashctl.sh').write_text('clashctl() { test "$1" = start || return 1; touch "$CLASHCTL_HOME/data/started"; }\n')
+        (scripts / 'clashctl.sh').write_text('detect_service_manager() { service_manager=fixture; }\nclashctl() { test "$1" = start || return 1; touch "$CLASHCTL_HOME/data/started"; }\n')
         self.settings.set_enabled(True)
         marker = self.root / 'data/started'
         env = dict(os.environ)
@@ -100,7 +100,7 @@ class CoreAutostartTests(unittest.TestCase):
         self.settings.set_enabled(True)
         scripts = self.root / 'scripts/cmd'
         scripts.mkdir(parents=True)
-        (scripts / 'clashctl.sh').write_text('clashctl() { touch "$CLASHCTL_HOME/data/MUST_NOT_START"; }\n')
+        (scripts / 'clashctl.sh').write_text('detect_service_manager() { service_manager=fixture; }\nclashctl() { touch "$CLASHCTL_HOME/data/MUST_NOT_START"; }\n')
         process = None
         with core.startup_lock(self.root):
             code = '''import importlib.util,sys
@@ -127,7 +127,7 @@ m.run_autostart(sys.argv[2])
         login.write_text('export LOGIN_ONLY=preserved\n')
         scripts = self.root / 'scripts/cmd'
         scripts.mkdir(parents=True)
-        (scripts / 'clashctl.sh').write_text('clashctl() { touch "$CLASHCTL_HOME/data/login-started"; }\n')
+        (scripts / 'clashctl.sh').write_text('detect_service_manager() { service_manager=fixture; }\nclashctl() { touch "$CLASHCTL_HOME/data/login-started"; }\n')
         self.settings.set_enabled(True)
         self.assertIn(core.BEGIN, login.read_text())
         self.assertFalse((self.home / '.profile').exists())
@@ -137,3 +137,73 @@ m.run_autostart(sys.argv[2])
         self.assertTrue((self.root / 'data/login-started').exists())
         self.settings.set_enabled(False)
         self.assertEqual(login.read_text().strip(), 'export LOGIN_ONLY=preserved')
+
+
+class CoreProcessRecoveryTests(unittest.TestCase):
+    def setUp(self):
+        self.temp = tempfile.TemporaryDirectory(prefix='core process spaces ')
+        self.addCleanup(self.temp.cleanup)
+        self.folder = Path(self.temp.name)
+        self.proc = self.folder / 'proc'
+        self.proc.mkdir()
+        self.uid = self.proc.stat().st_uid
+        uid = patch.object(core.os, 'geteuid', return_value=self.uid, create=True)
+        uid.start()
+        self.addCleanup(uid.stop)
+        self.binary = self.folder / 'mihomo'
+        self.binary.write_bytes(b'fixture')
+        self.resources = str(self.folder / 'resources')
+        self.runtime = str(self.folder / 'runtime.yaml')
+        self.argv = b'\0'.join(os.fsencode(x) for x in (str(self.binary), '-d', self.resources, '-f', self.runtime)) + b'\0'
+        self.link = patch.object(core.os, 'readlink', return_value=str(self.binary))
+        self.link.start()
+        self.addCleanup(self.link.stop)
+
+    def process(self, pid=123, argv=None, state='S'):
+        p = self.proc / str(pid)
+        p.mkdir()
+        (p / 'cmdline').write_bytes(self.argv if argv is None else argv)
+        (p / 'stat').write_text(str(pid) + ' (mihomo) ' + state + ' ' + ' '.join(['0'] * 18 + ['456']))
+        (p / 'exe').write_bytes(b'fixture executable identity')
+        return p
+
+    def find(self):
+        return core.find_core_process(str(self.binary), self.resources, self.runtime, self.proc)
+
+    def test_exact_process_can_repair_a_missing_or_stale_pid_record(self):
+        self.process()
+        identity = self.find().split('\t')
+        self.assertEqual(identity[:3], ['123', '456', self.argv.hex()])
+
+    def test_other_installation_and_other_config_are_never_adopted(self):
+        self.process(argv=self.argv.replace(b'runtime.yaml', b'other.yaml'))
+        self.process(124, argv=self.argv.replace(b'mihomo', b'other'))
+        self.assertEqual(self.find(), '')
+
+    def test_other_user_and_zombie_are_never_adopted(self):
+        self.process()
+        with patch.object(core.os, 'geteuid', return_value=self.uid + 1):
+            self.assertEqual(self.find(), '')
+        (self.proc / '123/stat').write_text('123 (mihomo) Z ' + ' '.join(['0'] * 18 + ['456']))
+        self.assertEqual(self.find(), '')
+
+    def test_ambiguous_processes_fail_instead_of_guessing(self):
+        self.process()
+        self.process(124)
+        with self.assertRaisesRegex(ValueError, '多个'):
+            self.find()
+
+    def test_changed_process_identity_is_not_adopted(self):
+        p = self.process()
+        original = Path.read_text
+        calls = 0
+        def read(path, *args, **kwargs):
+            nonlocal calls
+            value = original(path, *args, **kwargs)
+            if path == p / 'stat':
+                calls += 1
+                if calls == 2:
+                    value = value.replace('456', '789')
+            return value
+        with patch.object(Path, 'read_text', read):
+            self.assertEqual(self.find(), '')

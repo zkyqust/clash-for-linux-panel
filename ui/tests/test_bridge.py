@@ -97,6 +97,9 @@ class FakeBridge(bridge.Bridge):
         if route == '/connections': return {'connections': [{'metadata': {'host': 'site.test', 'destinationPort': '443'}, 'chains': ['台湾', '国外']}], 'uploadTotal': 10}
         return {}
 
+    def core_port_open(self):
+        return self.running
+
     def cli(self, args, extra_env=None):
         self.calls.append(args)
         if args == ['stop']: self.running = False
@@ -244,6 +247,21 @@ class OperationTests(unittest.TestCase):
             with patch.object(bridge.subprocess, 'run', side_effect=run):
                 result = bridge.Bridge.cli(self.b, ['sub', 'use', '$(echo never)'])
         self.assertNotIn('/s/private', result['message'])
+
+    def test_successful_stop_command_cannot_claim_a_live_core_was_stopped(self):
+        result = type('Result', (), {'returncode': 0, 'stdout': 'mihomo stopped', 'stderr': ''})()
+        verify = lambda enabled: bridge.Bridge.verify_core_service(self.b, enabled, timeout=0)
+        with patch.object(bridge.subprocess, 'run', return_value=result), patch.object(self.b, 'verify_core_service', side_effect=verify):
+            with self.assertRaisesRegex(ValueError, '未确认关闭'):
+                bridge.Bridge.cli(self.b, ['stop'])
+
+    def test_successful_start_command_requires_a_ready_core(self):
+        self.b.running = False
+        result = type('Result', (), {'returncode': 0, 'stdout': 'mihomo started', 'stderr': ''})()
+        verify = lambda enabled: bridge.Bridge.verify_core_service(self.b, enabled, timeout=0)
+        with patch.object(bridge.subprocess, 'run', return_value=result), patch.object(self.b, 'verify_core_service', side_effect=verify):
+            with self.assertRaisesRegex(ValueError, '未就绪'):
+                bridge.Bridge.cli(self.b, ['start'])
 
     @unittest.skipUnless(os.name == 'posix', 'requires real Linux Bash')
     def test_real_bash_preserves_shell_metacharacters(self):

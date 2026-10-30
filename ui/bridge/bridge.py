@@ -487,6 +487,30 @@ class Bridge:
             info['warnings'].append('控制接口不可用：可能尚未启动、端口不可达或认证失败。')
         return info
 
+    def core_port_open(self):
+        address = urllib.parse.urlsplit(self.api)
+        try:
+            with socket.create_connection((address.hostname, address.port), timeout=0.5):
+                return True
+        except ConnectionRefusedError:
+            return False
+
+    def verify_core_service(self, enabled, timeout=3):
+        deadline = time.monotonic() + timeout
+        while True:
+            try:
+                if enabled:
+                    self.request('/version', timeout=0.5)
+                    return
+                if not self.core_port_open():
+                    return
+            except (OSError, ValueError):
+                pass
+            if time.monotonic() >= deadline:
+                raise ValueError('内核启动后控制接口未就绪。' if enabled else
+                                 '内核停止命令已返回，但控制接口仍可访问或无法核验；未确认关闭。')
+            time.sleep(0.1)
+
     def cli(self, args, extra_env=None):
         # Fixed Bash program; every user-controlled value is a separate positional argument.
         env = proxy_environment(self.config)
@@ -502,7 +526,17 @@ class Bridge:
             except Exception:
                 # After deleting the last profile the local proxy is intentionally stopped.
                 env = proxy_environment({}, env)
-        script = 'source "$CLASHCTL_HOME/scripts/cmd/clashctl.sh" || exit; clashctl "$@"'
+        script = 'source "$CLASHCTL_HOME/scripts/cmd/clashctl.sh" || exit; '
+        if args in (['start'], ['stop']):
+            env['CLASH_PANEL_PYTHON'] = sys.executable
+            env['CLASH_PANEL_CORE_SOURCE'] = globals().get('CORE_AUTOSTART_SOURCE') or Path(__file__).with_name('core_autostart.py').read_text(encoding='utf-8')
+            # Recover an orphaned nohup core without changing upstream scripts. The
+            # native lock and identity checks prevent adopting a reused/unrelated PID.
+            namespace = {'__name__': 'clash_panel_core_service'}
+            exec(compile(env['CLASH_PANEL_CORE_SOURCE'], 'core_autostart.py', 'exec'), namespace)
+            script = namespace['CORE_SERVICE_SCRIPT']
+        else:
+            script += 'clashctl "$@"'
         try:
             process = subprocess.run(['bash', '--noprofile', '--norc', '-c', script, 'clash-panel'] + args, input='', capture_output=True, text=True, timeout=95, env=env)
         except subprocess.TimeoutExpired:
@@ -510,6 +544,8 @@ class Bridge:
         output = redact((process.stdout + '\n' + process.stderr)[-20000:], self.secrets)
         if process.returncode:
             raise ValueError(output.strip() or 'clashctl 操作失败。')
+        if args in (['start'], ['stop']):
+            self.verify_core_service(args == ['start'])
         return {'message': output.strip() or '操作完成。'}
 
     def dispatch(self, action, params):
