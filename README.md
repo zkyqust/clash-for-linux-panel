@@ -102,7 +102,7 @@ bash setup.sh --vsix "$HOME/clashctl-panel.vsix"
 
 三个开关独立控制。终端默认代理不会自动启停内核；代理转发和 TUN 实际生效需要内核运行。
 
-内核服务开启后，插件为当前 Linux 用户配置 `.bashrc` 和 `.zshrc`。新开的 SSH / VS Code Bash、Zsh 交互终端会自动启动内核，已运行时跳过；关闭后移除自启动加载段。终端默认代理开关独立保存，不受内核服务开关影响。此功能在打开交互终端时触发。
+内核服务开启后，插件为当前 Linux 用户配置 `.bashrc`、`.zshrc` 及对应的登录启动文件。新开的 SSH / VS Code Bash、Zsh 交互终端会自动启动内核，已运行时跳过；关闭后移除自启动加载段。终端默认代理开关独立保存，不受内核服务开关影响。此功能在打开交互终端时触发。
 
 TUN 需要 `/dev/net/tun`、iproute2 和网络管理权限。在 Docker 中，需要管理员为容器提供 TUN 设备和 `CAP_NET_ADMIN` 权限。
 

@@ -52,7 +52,10 @@ class CoreAutostartSettings:
         self.helper = self.root / 'data/core-autostart.py'
 
     def startup_files(self):
-        return [self.user_home / '.bashrc', self.user_home / '.zshrc']
+        # SSH login shells do not necessarily source .bashrc on a fresh account.
+        bash_login = next((self.user_home / name for name in ('.bash_profile', '.bash_login', '.profile')
+                           if (self.user_home / name).exists()), self.user_home / '.profile')
+        return [self.user_home / '.bashrc', bash_login, self.user_home / '.zshrc', self.user_home / '.zprofile']
 
     def state(self):
         if self.state_path.exists():

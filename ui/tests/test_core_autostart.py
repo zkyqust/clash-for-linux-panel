@@ -120,3 +120,20 @@ m.run_autostart(sys.argv[2])
         out, err = process.communicate(timeout=10)
         self.assertEqual(process.returncode, 0, err)
         self.assertFalse((self.root / 'data/MUST_NOT_START').exists())
+
+    @unittest.skipUnless(os.name == 'posix' and shutil.which('bash'), 'Linux Bash required')
+    def test_existing_login_profile_without_bashrc_source_gets_its_own_hook(self):
+        login = self.home / '.bash_profile'
+        login.write_text('export LOGIN_ONLY=preserved\n')
+        scripts = self.root / 'scripts/cmd'
+        scripts.mkdir(parents=True)
+        (scripts / 'clashctl.sh').write_text('clashctl() { touch "$CLASHCTL_HOME/data/login-started"; }\n')
+        self.settings.set_enabled(True)
+        self.assertIn(core.BEGIN, login.read_text())
+        self.assertFalse((self.home / '.profile').exists())
+        p = subprocess.run(['bash', '--noprofile', '--norc', '-ic', '. "$1"; printf "%s" "$LOGIN_ONLY"',
+                            'test', str(login)], capture_output=True, text=True, timeout=10)
+        self.assertEqual(p.stdout, 'preserved')
+        self.assertTrue((self.root / 'data/login-started').exists())
+        self.settings.set_enabled(False)
+        self.assertEqual(login.read_text().strip(), 'export LOGIN_ONLY=preserved')
