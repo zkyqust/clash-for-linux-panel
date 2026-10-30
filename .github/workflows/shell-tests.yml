@@ -12,7 +12,8 @@ permissions:
 
 jobs:
   regression:
-    runs-on: ubuntu-latest
+    # Upstream process fixtures rename GNU sleep; multicall coreutils changes argv[0] behavior.
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v7
