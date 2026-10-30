@@ -59,7 +59,8 @@ class Backend {
     const timeout = ['tun', 'subDelete'].includes(action) ? 240000 : 120000;
     if (config.transport === 'ssh') {
       const helper = fs.readFileSync(path.join(this.root, 'bridge', 'terminal_proxy.py'), 'utf8');
-      const script = `import json,base64\nPAYLOAD=json.loads(base64.b64decode('${Buffer.from(JSON.stringify(payload)).toString('base64')}'))\nTERMINAL_PROXY_SOURCE=base64.b64decode('${Buffer.from(helper).toString('base64')}').decode('utf-8')\n` + fs.readFileSync(path.join(this.root, 'bridge', 'bridge.py'), 'utf8');
+      const coreHelper = fs.readFileSync(path.join(this.root, 'bridge', 'core_autostart.py'), 'utf8');
+      const script = `import json,base64\nPAYLOAD=json.loads(base64.b64decode('${Buffer.from(JSON.stringify(payload)).toString('base64')}'))\nTERMINAL_PROXY_SOURCE=base64.b64decode('${Buffer.from(helper).toString('base64')}').decode('utf-8')\nCORE_AUTOSTART_SOURCE=base64.b64decode('${Buffer.from(coreHelper).toString('base64')}').decode('utf-8')\n` + fs.readFileSync(path.join(this.root, 'bridge', 'bridge.py'), 'utf8');
       return collect('ssh', sshArgs(config).concat([`${config.python} -`]), script, timeout);
     }
     if (process.platform === 'win32') throw new Error('Windows 本机请选择 SSH 方式，或在 Remote SSH 的 Linux 窗口中打开插件。');

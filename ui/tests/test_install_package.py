@@ -23,7 +23,8 @@ def package(metadata=META):
     with zipfile.ZipFile(buffer, 'w') as archive:
         archive.writestr('extension/package.json', json.dumps(metadata))
         for name in ['extension.vsixmanifest', 'extension/src/extension.js',
-                     'extension/bridge/bridge.py', 'extension/bridge/terminal_proxy.py']:
+                     'extension/bridge/bridge.py', 'extension/bridge/terminal_proxy.py',
+                     'extension/bridge/core_autostart.py']:
             archive.writestr(name, 'fixture')
     return buffer.getvalue()
 

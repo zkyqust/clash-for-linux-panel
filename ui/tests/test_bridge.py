@@ -65,6 +65,12 @@ class FakeBridge(bridge.Bridge):
         path = self.root / relative
         return json.loads(path.read_text()) if path.exists() else {}
 
+    def core_startup_settings(self):
+        settings = super().core_startup_settings()
+        settings.user_home = self.root / 'core-user'
+        settings.user_home.mkdir(exist_ok=True)
+        return settings
+
     def stage_yaml(self, relative, updates):
         value = self.yaml(relative)
         for key, content in updates.items():
@@ -94,6 +100,7 @@ class FakeBridge(bridge.Bridge):
     def cli(self, args, extra_env=None):
         self.calls.append(args)
         if args == ['stop']: self.running = False
+        if args == ['start']: self.running = True
         if args == ['mixin', '-e']: self.running = True; self.live = self.yaml('data/runtime.yaml')
         if args[:1] == ['tun'] and len(args) == 2:
             enabled = args[1] == 'on'
@@ -117,6 +124,51 @@ class OperationTests(unittest.TestCase):
         self.b = FakeBridge(self.temp.name)
 
     def tearDown(self): self.temp.cleanup()
+
+    def test_core_switch_saves_and_removes_hooks_without_proxy_or_node_changes(self):
+        settings = self.b.core_startup_settings()
+        startup = settings.user_home / '.bashrc'
+        startup.write_text('export LANG=C.UTF-8\n')
+        previous = {p: p.read_bytes() for p in (self.b.root / 'data').glob('*.yaml')}
+        proxy = self.b.root / 'data/panel-terminal-proxy.json'
+        proxy.write_text('{"version": 1, "enabled": true}\n')
+        self.b.dispatch('start', {})
+        self.assertTrue(self.b.running)
+        self.assertTrue(settings.state()['enabled'])
+        self.assertIn('clash-panel core autostart', startup.read_text())
+        self.b.dispatch('stop', {})
+        self.assertFalse(self.b.running)
+        self.assertFalse(settings.state()['enabled'])
+        self.assertEqual(startup.read_text().strip(), 'export LANG=C.UTF-8')
+        self.assertTrue(json.loads(proxy.read_text())['enabled'])
+        for path, content in previous.items(): self.assertEqual(path.read_bytes(), content)
+
+    def test_start_failure_restores_startup_files_and_stopped_state(self):
+        self.b.running = False
+        original = self.b.cli
+        def fail_start(args, extra_env=None):
+            if args == ['start']: raise ValueError('cannot start')
+            return original(args, extra_env)
+        with patch.object(self.b, 'cli', side_effect=fail_start):
+            with self.assertRaisesRegex(ValueError, '已恢复'):
+                self.b.dispatch('start', {})
+        settings = self.b.core_startup_settings()
+        self.assertFalse(settings.state()['enabled'])
+        self.assertFalse((settings.user_home / '.bashrc').exists())
+        self.assertFalse(self.b.running)
+
+    def test_stop_failure_restores_enabled_setting_and_running_state(self):
+        self.b.dispatch('start', {})
+        original = self.b.cli
+        def fail_stop(args, extra_env=None):
+            result = original(args, extra_env)
+            if args == ['stop']: raise ValueError('cannot stop')
+            return result
+        with patch.object(self.b, 'cli', side_effect=fail_stop):
+            with self.assertRaisesRegex(ValueError, '已恢复'):
+                self.b.dispatch('stop', {})
+        self.assertTrue(self.b.running)
+        self.assertTrue(self.b.core_startup_settings().state()['enabled'])
 
     def test_snapshot_excludes_private_data(self):
         snapshot = self.b.snapshot()
@@ -276,14 +328,17 @@ class PersistenceTests(unittest.TestCase):
         self.assertIn('已启用并保存', result['message'])
 
     def test_delete_last_stops_core_and_clears_active_config(self):
+        self.b.dispatch('start', {})
         self.b.dispatch('subDelete', {'name': '副订阅'})
         self.b.dispatch('subDelete', {'name': '主订阅', 'allowActive': True})
         self.assertFalse(self.b.running)
+        self.assertFalse(self.b.core_startup_settings().state()['enabled'])
         self.assertEqual(self.b.yaml('data/profiles.yaml')['profiles'], [])
         self.assertEqual(self.b.yaml('data/profiles.yaml')['use'], '')
         self.assertNotIn('private subscription', (self.b.root / 'data/config.yaml').read_text())
 
     def test_last_delete_failure_restores_profile_and_running_state(self):
+        self.b.dispatch('start', {})
         self.b.dispatch('subDelete', {'name': '副订阅'})
         original_cli = self.b.cli
         def fail_delete(args, extra_env=None):
@@ -295,6 +350,7 @@ class PersistenceTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, '已恢复'):
                 self.b.dispatch('subDelete', {'name': '主订阅', 'allowActive': True})
         self.assertTrue(self.b.running)
+        self.assertTrue(self.b.core_startup_settings().state()['enabled'])
         self.assertEqual(self.b.yaml('data/profiles.yaml')['use'], '主订阅')
         self.assertTrue((self.b.root / 'data/profiles/a.yaml').exists())
 

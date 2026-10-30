@@ -35,6 +35,15 @@ async function update(page, snapshot = fixture, extra = {}) {
     assert.equal(await page.locator('.status-card').count(), 5);
     assert.equal(await page.getByRole('switch', { name: 'TUN 虚拟网卡' }).isDisabled(), !fixture.tun && !fixture.tunCapability?.canEnable);
     assert.equal(await page.getByRole('switch').count(), 3);
+    await update(page, { ...fixture, running: false, coreAutostart: { enabled: true, installed: true } }, { activeTab: 'overview' });
+    assert.equal(await page.getByRole('switch', { name: '内核服务', exact: true }).getAttribute('aria-checked'), 'true');
+    await page.getByRole('switch', { name: '内核服务', exact: true }).click();
+    assert.equal(await page.evaluate(() => window.sent.at(-1).action), 'stop');
+    await update(page, { ...fixture, running: false, coreAutostart: { enabled: false, installed: true } }, { activeTab: 'overview' });
+    await page.getByRole('switch', { name: '内核服务', exact: true }).click();
+    assert.equal(await page.evaluate(() => window.sent.at(-1).action), 'start');
+    await update(page, fixture, { activeTab: 'overview' });
+    checks.push('kernel switch can cancel saved autostart even when the core is stopped');
     await page.getByRole('switch', { name: '终端默认代理', exact: true }).click();
     assert.deepEqual(await page.evaluate(() => window.sent.at(-1)), { action: 'terminalProxy', enabled: true });
     assert.equal(await page.getByRole('button', { name: '编辑HTTP端口' }).count(), 0);

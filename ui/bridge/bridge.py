@@ -199,6 +199,36 @@ class Bridge:
         exec(compile(source, 'terminal_proxy.py', 'exec'), namespace)
         return namespace['TerminalProxySettings'](self.root, source)
 
+    def core_startup_settings(self):
+        source = globals().get('CORE_AUTOSTART_SOURCE')
+        if source is None:
+            source = Path(__file__).with_name('core_autostart.py').read_text(encoding='utf-8')
+        namespace = {'__name__': 'clash_panel_core_autostart'}
+        exec(compile(source, 'core_autostart.py', 'exec'), namespace)
+        return namespace['CoreAutostartSettings'](self.root, source)
+
+    def set_core_service(self, enabled):
+        settings = self.core_startup_settings()
+        with config_lock(self.root):
+            originals = settings.capture()
+            try:
+                self.request('/version', timeout=1)
+                was_running = True
+            except (OSError, ValueError):
+                was_running = False
+            settings.set_enabled(enabled)
+            try:
+                self.cli(['start' if enabled else 'stop'])
+            except Exception as exc:
+                settings.restore(originals)
+                try:
+                    self.cli(['start' if was_running else 'stop'])
+                except Exception:
+                    raise ValueError('内核操作失败，自启动设置已恢复，请刷新检查内核运行状态。' + str(exc)) from None
+                raise ValueError('内核操作失败，已恢复原设置和运行状态。' + str(exc)) from None
+        return {'message': ('内核已开启，新开的 Bash / Zsh 交互终端会自动启动内核。' if enabled else
+                            '内核已关闭，并已取消新终端自动启动。')}
+
     def saved_choices(self):
         path = self.root / 'data/panel-selections.json'
         if not path.exists():
@@ -389,7 +419,10 @@ class Bridge:
                 raise ValueError('该订阅文件位于标准订阅目录以外，请在终端中处理。') from None
             profile_rel = 'data/profiles/' + relative_source.as_posix()
             originals, folder = self.backup(['data/profiles.yaml', 'data/config.yaml', 'data/runtime.yaml', profile_rel])
+            startup = self.core_startup_settings()
+            startup_originals = startup.capture()
             try:
+                startup.set_enabled(False)
                 self.cli(['stop'])
                 atomic_write(self.root / 'data/profiles.yaml', self.stage_yaml('data/profiles.yaml', {'use': ''}), originals['data/profiles.yaml'][1])
                 self.cli(['sub', 'del', name])
@@ -401,6 +434,7 @@ class Bridge:
                 atomic_write(self.root / 'data/runtime.yaml', json.dumps(empty_runtime).encode(), originals['data/runtime.yaml'][1])
             except Exception as exc:
                 self.restore(originals)
+                startup.restore(startup_originals)
                 try:
                     self.cli(['mixin', '-e'], {'EDITOR': shutil.which('true') or '/usr/bin/true'})
                 except Exception:
@@ -419,6 +453,11 @@ class Bridge:
         except (OSError, ValueError):
             info['terminalProxy'] = {'enabled': False, 'installed': False, 'error': True}
             info['warnings'].append('无法读取终端默认代理配置，请重新保存开关设置。')
+        try:
+            info['coreAutostart'] = self.core_startup_settings().state()
+        except (OSError, ValueError):
+            info['coreAutostart'] = {'enabled': False, 'installed': False, 'error': True}
+            info['warnings'].append('无法读取内核终端自启动设置，请重新设置内核服务开关。')
         if not port(self.config.get('port')) and port(self.config.get('mixed-port')):
             info['warnings'].append('独立 HTTP 端口未启用；插件使用混合端口创建代理终端，避开 :0。')
         try:
@@ -548,7 +587,7 @@ class Bridge:
                 text = handle.read(48000).decode('utf-8', errors='replace')
             return {'text': redact('\n'.join(text.splitlines()[-120:]), self.secrets)}
         if action in ('start', 'stop'):
-            return self.cli([action])
+            return self.set_core_service(action == 'start')
         if action in ('subUse', 'subUpdate'):
             name = valid_name(params.get('name'))
             profiles = self.profiles()

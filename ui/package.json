@@ -2,7 +2,7 @@
   "name": "clashctl-panel",
   "displayName": "Clash Panel · 可视化管理",
   "description": "在 VS Code 中管理 Linux clashctl：节点、订阅、连接、日志与代理终端。支持 Remote SSH 和本机 SSH。",
-  "version": "0.3.5",
+  "version": "0.3.6",
   "publisher": "local-tools",
   "license": "MIT",
   "repository": { "type": "git", "url": "https://github.com/zkyqust/clash-for-linux-panel.git", "directory": "ui" },
@@ -44,7 +44,7 @@
   "scripts": {
     "check": "node --check src/extension.js && node --check src/backend.js && node --check media/app.js",
     "test": "node --test tests/backend.test.js tests/controller.test.js",
-    "package": "vsce package --allow-missing-repository --no-rewrite-relative-links --out releases/clashctl-panel-0.3.5.vsix"
+    "package": "vsce package --allow-missing-repository --no-rewrite-relative-links --out releases/clashctl-panel-0.3.6.vsix"
   },
   "devDependencies": { "@vscode/vsce": "^3.6.2" }
 }

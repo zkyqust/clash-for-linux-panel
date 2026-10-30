@@ -131,7 +131,7 @@ class Controller {
       if (action === 'configure') { await this.configure(); return; }
       if (action === 'terminal') { await this.terminal(); return; }
       if (action === 'stop') {
-        const yes = await vscode.window.showWarningMessage('停止服务器 Clash？所有使用这个内核的程序都会失去代理连接。', { modal: true }, '停止服务器 Clash');
+        const yes = await vscode.window.showWarningMessage('停止服务器 Clash，并取消新终端自动启动？所有使用这个内核的程序都会失去代理连接。', { modal: true }, '停止服务器 Clash');
         if (!yes) return;
       }
       if (['subUse', 'subUpdate', 'subDelete'].includes(action)) {

@@ -22,7 +22,7 @@ def validate(package, metadata):
             if actual.get(key) != metadata[key]:
                 raise ValueError('VSIX %s does not match this source version (%s).' % (key, metadata[key]))
         for entry in ('extension.vsixmanifest', 'extension/src/extension.js', 'extension/bridge/bridge.py',
-                      'extension/bridge/terminal_proxy.py'):
+                      'extension/bridge/terminal_proxy.py', 'extension/bridge/core_autostart.py'):
             archive.getinfo(entry)
 
 

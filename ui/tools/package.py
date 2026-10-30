@@ -9,7 +9,7 @@ import zipfile
 
 ROOT = Path(__file__).resolve().parents[1]
 FILES = ['package.json', 'src/extension.js', 'src/backend.js', 'bridge/bridge.py',
-         'bridge/terminal_proxy.py', 'media/app.js', 'media/style.css', 'media/controls.css',
+         'bridge/terminal_proxy.py', 'bridge/core_autostart.py', 'media/app.js', 'media/style.css', 'media/controls.css',
          'media/clash.svg', 'media/preview.png', 'THIRD_PARTY_NOTICES.md']
 RENAMED = {'README.md': 'readme.md', 'CHANGELOG.md': 'changelog.md', 'LICENSE': 'LICENSE.txt'}
 

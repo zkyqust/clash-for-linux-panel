@@ -95,9 +95,11 @@ function switchButton(label, checked, action, params) {
 }
 function kernelCard(s) {
   const card = el('section', 'status-card control-card');
-  const row = el('div', 'section-head'); row.append(el('h3', '', '内核服务'), switchButton('内核服务', s.running, s.running ? 'stop' : 'start', {}));
+  const enabled = s.running || s.coreAutostart?.enabled === true;
+  const row = el('div', 'section-head'); row.append(el('h3', '', '内核服务'), switchButton('内核服务', enabled, enabled ? 'stop' : 'start', {}));
   const line = el('div', 'control-state'); line.append(el('span', 'dot ' + (s.running ? 'online' : 'offline')), el('strong', '', s.running ? '运行中' : '未连接'));
-  card.append(row, line, el('p', 'muted small', s.version ? 'Mihomo ' + s.version : '启动内核后提供代理转发服务。'));
+  card.append(row, line, el('p', 'muted small', s.version ? 'Mihomo ' + s.version : '启动内核后提供代理转发服务。'),
+    el('p', 'muted small', s.coreAutostart?.enabled ? '已保存：新开的 Bash / Zsh 交互终端自动启动，已运行时跳过。' : '开启后同时启用新终端自动启动；关闭后取消。'));
   return card;
 }
 function terminalProxyCard(s) {
